@@ -44,10 +44,10 @@
 ; ----------------------------
 (deftemplate orden
    (slot cliente) 
-   (slot smartphone)  
-   (slot computador)
-   (slot accesorio)  
-   (slot cantidad)  
+   (slot smartphone (default none))  
+   (slot computador (default none))
+   (slot accesorio (default none))  
+   (slot qty)  
    (slot metodo-pago)  
    (slot total)) 
 
