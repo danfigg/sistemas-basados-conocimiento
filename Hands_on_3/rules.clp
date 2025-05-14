@@ -53,12 +53,12 @@
    )
    =>
    (if (>= ?stock ?qty) then
-       (printout t "✔ Hay stock suficiente para la orden " ?idOrden crlf)
+       (printout t "Hay stock suficiente para la orden " ?idOrden crlf)
        (printout t "   Producto: " ?tipo " " ?marca " " ?modelo crlf)
        (printout t "   Cantidad solicitada: " ?qty crlf)
        (printout t "   En stock: " ?stock crlf)
    else
-       (printout t "✘ NO hay stock suficiente para la orden " ?idOrden crlf)
+       (printout t "NO hay stock suficiente para la orden " ?idOrden crlf)
        (printout t "   Producto: " ?tipo " " ?marca " " ?modelo crlf)
        (printout t "   Cantidad solicitada: " ?qty crlf)
        (printout t "   En stock: " ?stock crlf))
@@ -111,6 +111,7 @@
 )
 
 ; Rule 8: Aplica una promoción del 10% de descuento si se paga con tarjeta BBVA Visa.
+
 (defrule promo-bbva-visa
     (lista-orden (id-orden ?idorden) (metodo-pago tarjeta-?idtarjeta) (total ?total))
     (tarjeta_credito (id-tarjeta ?idtarjeta) (banco BBVA) (grupo Visa))
@@ -120,6 +121,7 @@
 )
 
 ; Rule 9: Aplica un descuento de $500 en compras mayores a $50,000 si se paga en efectivo.
+
 (defrule promo-efectivo-mayor-50000
     (lista-orden (id-orden ?idorden) (metodo-pago efectivo) (total ?total&:(> ?total 50000)))
     =>
@@ -128,6 +130,7 @@
 )
 
 ; Rule 10: Aplica un 5% de descuento en compras realizadas con tarjeta Liverpool.
+
 (defrule promo-liverpool
     (lista-orden (id-orden ?idorden) (metodo-pago tarjeta-?idtarjeta) (total ?total))
     (tarjeta_credito (id-tarjeta ?idtarjeta) (banco Liverpool))
@@ -137,6 +140,7 @@
 )
 
 ; Rule 11: Aplica un descuento con un vale si la compra es mayor a $10,000.
+
 (defrule promo-vale
     (lista-orden (id-orden ?idorden) (total ?total&:(> ?total 10000)))
     (vale (id-vale ?idvale) (valor ?valor) (estatus activo))
@@ -146,6 +150,7 @@
 )
 
 ; Rule 12: Recomienda usar tarjeta Visa para descuentos exclusivos en compras de smartphones Apple.
+
 (defrule recomendar-tarjeta-de-credito
    ?orden <- (orden (id-orden ?idorden) (id-cliente ?idcliente) (tipo smartphone) (id-producto ?idproducto) (qty ?qty))
    ?cliente <- (cliente (id-cliente ?idcliente) (nombre ?nombre))
@@ -157,32 +162,39 @@
 )
 
 ; Rule 13: Recomienda otros productos según la marca del smartphone adquirido.
+
 (defrule recomendar-productos-segun-marca
    ?orden <- (orden (id-orden ?idorden) (id-cliente ?idcliente) (tipo smartphone) (id-producto ?idproducto) (qty ?qty))
    ?smartphone <- (smartphone (id-smartphone ?idproducto) (marca ?marca))
    ?cliente <- (cliente (id-cliente ?idcliente) (nombre ?nombre))
    =>
-   (if (eq ?marca "apple") then
+   (printout t "Orden ID: " ?idorden " - Producto ID: " ?idproducto " - Marca: " ?marca crlf)
+
+   (if (eq ?marca apple) then
       (printout t "Recomendación para " ?nombre ": Te sugerimos probar más productos de Apple, como el MacBook Pro o accesorios adicionales." crlf)
-   else if (eq ?marca "samsung") then
-      (printout t "Recomendación para " ?nombre ": No olvides explorar otros productos Samsung que se complementan con tu Galaxy S21." crlf)
+   else 
+      (if (eq ?marca samsung) then
+         (printout t "Recomendación para " ?nombre ": No olvides explorar otros productos Samsung que se complementan con tu Galaxy S21." crlf)
+      )
    )
 )
 
 ; Rule 14: Recomienda accesorios para smartphones según la marca adquirida.
+
 (defrule recomendar-accesorios-smartphone
    ?orden <- (orden (id-orden ?idorden) (id-cliente ?idcliente) (tipo smartphone) (id-producto ?idproducto) (qty ?qty))
    ?smartphone <- (smartphone (id-smartphone ?idproducto) (marca ?marca))
    ?cliente <- (cliente (id-cliente ?idcliente) (nombre ?nombre))
    =>
-   (if (eq ?marca "apple") then
+   (if (eq ?marca apple) then
       (printout t "Recomendación para " ?nombre ": No te olvides de los accesorios para tu iPhone. Ofrecemos fundas y micas Apple." crlf)
-   else if (eq ?marca "samsung") then
+   else if (eq ?marca samsung) then
       (printout t "Recomendación para " ?nombre ": Mira nuestras fundas y micas Samsung para tu Galaxy S21." crlf)
    )
 )
 
 ; Rule 15: Descuento para mayoristas smartphones
+
 (defrule descuento-mayoristas
     ?orden <- (orden (id-orden ?idOrden) (id-cliente ?idCliente) (tipo ?tipo) (id-producto ?idProducto) (qty ?qty))
     ?cliente <- (cliente (id-cliente ?idCliente) (nombre ?nombre))
@@ -192,8 +204,8 @@
     
     =>
     (if (> ?qty 10) then
-        (bind ?descuento (* ?precio 0.1))  ; Aplica un descuento del 10% para compras mayores a 10 unidades
-        (bind ?precio-final (- ?precio ?descuento))  ; Calcula el precio con descuento
+        (bind ?descuento (* ?precio 0.1)) 
+        (bind ?precio-final (- ?precio ?descuento))
         (printout t "El cliente " ?nombre " es mayorista. Se aplica un descuento del 10%." crlf)
         (printout t "Precio original: " ?precio crlf)
         (printout t "Descuento: " ?descuento crlf)
@@ -202,14 +214,15 @@
 )
 
 ; Rule 16: Descuento para mayoristas computadores
+
 (defrule descuento-mayoristas-compu
     ?orden <- (orden (id-orden ?idOrden) (id-cliente ?idCliente) (tipo ?tipo) (id-producto ?idProducto) (qty ?qty))
     ?cliente <- (cliente (id-cliente ?idCliente) (nombre ?nombre))
     (compu (id-compu ?idProducto) (precio ?precio) (stock ?stock))
     =>
     (if (> ?qty 10) then
-        (bind ?descuento (* ?precio 0.1))  ; Aplica un descuento del 10% para compras mayores a 10 unidades
-        (bind ?precio-final (- ?precio ?descuento))  ; Calcula el precio con descuento
+        (bind ?descuento (* ?precio 0.1))  
+        (bind ?precio-final (- ?precio ?descuento))  
         (printout t "El cliente " ?nombre " es mayorista. Se aplica un descuento del 10%." crlf)
         (printout t "Precio original: " ?precio crlf)
         (printout t "Descuento: " ?descuento crlf)
@@ -218,14 +231,15 @@
 )
 
 ; Rule 17: Descuento para mayoristas accesorios
+
 (defrule descuento-mayoristas-accesorios
     ?orden <- (orden (id-orden ?idOrden) (id-cliente ?idCliente) (tipo ?tipo) (id-producto ?idProducto) (qty ?qty))
     ?cliente <- (cliente (id-cliente ?idCliente) (nombre ?nombre))
     (accesorio (id-accesorio ?idProducto) (precio ?precio) (stock ?stock))
     =>
     (if (> ?qty 10) then
-        (bind ?descuento (* ?precio 0.1))  ; Aplica un descuento del 10% para compras mayores a 10 unidades
-        (bind ?precio-final (- ?precio ?descuento))  ; Calcula el precio con descuento
+        (bind ?descuento (* ?precio 0.1)) 
+        (bind ?precio-final (- ?precio ?descuento))
         (printout t "El cliente " ?nombre " es mayorista. Se aplica un descuento del 10%." crlf)
         (printout t "Precio original: " ?precio crlf)
         (printout t "Descuento: " ?descuento crlf)
@@ -234,6 +248,7 @@
 )
 
 ; Rule 18: Oferta de 24 meses sin intereses en iPhone 16 con tarjeta Banamex
+
 (defrule oferta-24-meses-sin-intereses
     ?orden <- (orden (id-orden ?idOrden) (id-cliente ?idCliente) (tipo smartphone) (id-producto 1) (qty ?qty))
     ?producto <- (smartphone (id-smartphone 1) (marca apple) (modelo iPhone16) (precio ?precio) (stock ?stock))
@@ -247,6 +262,7 @@
 )
 
 ; Rule 19: Oferta de 12 meses sin intereses en Samsung Galaxy Note 21 con tarjeta Liverpool VISA
+
 (defrule oferta-12-meses-no-intereses
     ?orden <- (orden (id-orden ?idOrden) (id-cliente ?idCliente) (tipo smartphone) (id-producto 2) (qty ?qty))
     ?producto <- (smartphone (id-smartphone 2) (marca samsung) (modelo GalaxyS21) (precio ?precio) (stock ?stock))
@@ -260,6 +276,7 @@
 )
 
 ; Rule 20: Oferta de vales en la compra de MacBook Air e iPhone 16 al contado
+
 (defrule oferta-vales-macbook-iphone
     ?orden-smartphone <- (orden (id-orden ?idOrden) (id-cliente ?idCliente) (tipo smartphone) (id-producto 1) (qty ?qty-smartphone))
     ?orden-computadora <- (orden (id-orden ?idOrden) (id-cliente ?idCliente) (tipo compu) (id-producto 1) (qty ?qty-computadora))
@@ -268,10 +285,11 @@
     (bind ?total-vales (* (/ ?total 1000) 100))  ; Por cada 1000 pesos de compra, 100 pesos en vales
     (printout t "Compra MacBook Air y iPhone16 al contado." crlf)
     (printout t "¡Te ofrecemos " ?total-vales " pesos en vales por cada 1000 pesos de compra!" crlf)
-    (assert (vale (id-vale ?idOrden) (valor ?total-vales) (estatus activo)))  ; Genera un vale con el valor calculado
+    (assert (vale (id-vale ?idOrden) (valor ?total-vales) (estatus activo))) 
 )
 
 ; Rule 21: Descuento en accesorios con la compra de un smartphone
+
 (defrule oferta-descuento-accesorios
    ?orden-smartphone <- (orden (id-orden ?idOrden) (id-cliente ?idCliente) (tipo smartphone) (id-producto ?idProducto) (qty ?qty))
    (smartphone (id-smartphone ?idProducto) (modelo ?modelo-smartphone))
@@ -282,13 +300,11 @@
        (bind ?precio-final (- ?precio ?descuento))  ; Calcula el precio final de la funda
        (printout t "Compra un Smartphone y obtén un descuento del 15% en accesorios." crlf)
        (printout t "Precio de funda con descuento: " ?precio-final crlf)
-       (assert (accesorio (id-accesorio (+ ?idAcc 4)) (tipo funda) (modelo ?modelo-smartphone) (precio ?precio-final) (stock 100)))  ; Crea una nueva entrada para la funda con el precio final
    )
    (if (eq ?tipo "mica") then
        (bind ?descuento (* ?precio 0.15))  ; Aplica un descuento del 15% en micas
        (bind ?precio-final (- ?precio ?descuento))  ; Calcula el precio final de la mica
        (printout t "Precio de mica con descuento: " ?precio-final crlf)  ; Imprime el precio final de la mica
-       (assert (accesorio (id-accesorio (+ ?idAcc 2)) (tipo mica) (modelo ?modelo-smartphone) (precio ?precio-final) (stock 100)))  ; Crea una nueva entrada para la mica con el precio final
    )
 )
 

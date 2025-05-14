@@ -69,8 +69,8 @@
 (deftemplate tarjeta_credito
    (slot id-tarjeta)
    (slot banco)
-   (slot grupo)  ; Ejemplo: Visa, MasterCard 
-   (slot tipo))  ; Ejemplo: oro, plata
+   (slot grupo) 
+   (slot tipo)) 
 
 ; ----------------------------
 ; Plantillas para Vales
